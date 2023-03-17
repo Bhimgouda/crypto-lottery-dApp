@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import { cryptoLotteryABI } from './cryptoLotteryABI';
 import Web3 from 'web3';
+import Participants from './components/Participants';
 
 function App() {
   let [web3,setWeb3] = useState();
@@ -9,8 +10,9 @@ function App() {
   let [currentAccount, setCurrentAccount] = useState();
   let [networkId, setNetworkId] = useState();
   let [participants, setParticpants] = useState([]);
+  let [minValue, setMinValue] = useState();
 
-  const contractAddress = "0xD87DEcb9976789e084d2c570a467Ff3E254d6Ed7";
+  const contractAddress = "0x188122714b47E78c39A283DFea6De89b1755C5A9";
 
 
   useEffect(()=>{
@@ -44,12 +46,16 @@ function App() {
     instantiate()
   },[])
 
+
+// To get Initial Participants and min-value to participate in lottery
   useEffect(()=>{
-    if(!web3) return;
+    if(!contract) return;
 
     async function getParticipants(){
+      const totalPlayers = await contract.methods.playersAdded().call();
+
       let allParticipants= [];
-      for(let i=0; i<3; i++){
+      for(let i=0; i<totalPlayers; i++){
         const participant = await contract.methods.participants(i).call();
         if(participant !== "0x0000000000000000000000000000000000000000"){
           allParticipants.push(participant);
@@ -57,8 +63,15 @@ function App() {
       }
       setParticpants(allParticipants);
     }
+
+    async function getMinValue(){
+      let value = await contract.methods.minValue().call();
+      value = web3.utils.fromWei(value, "ether");
+      setMinValue(value);
+    }
     
-    getParticipants()
+    getMinValue();
+    getParticipants();
     
   },[web3]);
 
@@ -81,13 +94,13 @@ function App() {
   },[web3]);
 
 
-  // const seeManagerAddress = async()=>{
-  //   if(!contract) return;
-  //   const manager = await contract.methods.manager().call();
-  //   console.log(manager);
-  // }
+  const seeManagerAddress = async()=>{
+    if(!contract) return;
+    const manager = await contract.methods.manager().call();
+    console.log(manager);
+  }
 
-  const placeBet = async()=>{
+  const placeABet = async()=>{
     const value = web3.utils.toWei("0.1", "ether")
     try {
       const result = await web3.eth.sendTransaction({
@@ -95,7 +108,11 @@ function App() {
         to: contractAddress,
         value
       })
-      setParticpants([...participants, currentAccount]);
+
+      if(participants.length < 2){
+        setParticpants([...participants, currentAccount]);
+      }
+      else setParticpants([]);
 
     } catch (error) {
       
@@ -104,16 +121,13 @@ function App() {
   }
 
   return (
-    <>
-    <div>
-      <button onClick={placeBet}>Place Bet</button>
-    </div>
-    <div>
-      {participants.map((p,index)=>(
-        <li key={index}>{`Participant ${index+1}: ${p}`}</li>
-      ))}
-    </div>
-    </>
+    <main className='app'>
+      <img className='headline-image' src="/images/Try-your-Luck-3-17-2023.png"/>
+      <Participants participants={participants} />
+      <div>
+        <button className='btn btn--bet' onClick={placeABet}>Place a Bet of {minValue} Ether</button>
+      </div>
+    </main>
   )
 
 }

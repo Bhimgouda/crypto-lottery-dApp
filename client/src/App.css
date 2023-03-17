@@ -1,38 +1,74 @@
-.App {
-  text-align: center;
+*,*::before, *::after {
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body{
+  margin: 0;
+  background: url("https://res.cloudinary.com/ddmnigwse/image/upload/v1679054857/bg-image_mw9pmi.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+.app{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
+}
+
+.headline-image{
+  width: 280px;
+}
+
+
+.participants{
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.participant{
+  width: 280px;
+  height: 150px;
+  background-color: whitesmoke;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+@media screen and (min-width:900px) {
+  .headline-image{
+    width: 780px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .participants{
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .participant{
+    width: 280px;
   }
 }
+
+.participant__address{
+  font-size: 12px;
+}
+
+/* Buttons */
+
+.btn{
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
+}
+
+.btn--bet{
+  font-size: 21px;
+  padding: 5px 10px;
+  background-color: whitesmoke;
+}
+
+
