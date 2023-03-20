@@ -1,4 +1,4 @@
-// 0xD8dA9c47f7728358c63fa15e28D3a1ad38679004 contract address on sepolia testnet
+// 0x34f1aBAA77df86DD53C5F9Ab3d0EC2A81D4775e6 contract address on sepolia testnet
 
 // SPDX-License-Identifier: MIT
 
@@ -6,10 +6,12 @@ pragma solidity ^0.8.0;
 
 contract Lottery{
     
-    address public manager;                // // Mananger Privelages - To reset minimum Value of lottery
+    address public manager;                // Mananger Privelages - To reset minimum Value of lottery
     address payable[3] public participants;
     uint public playersAdded = 0;
     uint public minValue = 0.1 ether;
+
+    event DeclareWinner(address winnerAddress,uint winnerIndex, uint winningAmount);
 
     constructor(){
         manager = msg.sender; // The deploying address will be set as a manager
@@ -51,7 +53,9 @@ contract Lottery{
 
     // Sending ether to winner's address
     function selectWinner() internal {
-        address payable winner = participants[generateRandomIndex()];
+        uint randomIndex = generateRandomIndex();
+        address payable winner = participants[randomIndex];
+        emit DeclareWinner(winner, randomIndex, minValue*participants.length);
         winner.transfer(address(this).balance);
     }
 

@@ -3,16 +3,28 @@ import './App.css';
 import { cryptoLotteryABI } from './cryptoLotteryABI';
 import Web3 from 'web3';
 import Participants from './components/Participants';
+import { CSSProperties } from "react";
+import PulseLoader from "react-spinners/PulseLoader";
+
+const override = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
+
 
 function App() {
   let [web3,setWeb3] = useState();
   let [contract, setContract] = useState();
   let [currentAccount, setCurrentAccount] = useState();
-  let [networkId, setNetworkId] = useState();
+  let [networkId, setNetworkId] = useState(0)
   let [participants, setParticpants] = useState([]);
   let [minValue, setMinValue] = useState();
+  let [loading, setLoading] = useState(false);
+  let [color, setColor] = useState("#ffffff");
+  let [winner, setWinner] = useState();
 
-  const contractAddress = "0x188122714b47E78c39A283DFea6De89b1755C5A9";
+  const contractAddress = "0x08B3445A1dc4F3ac7fEb048b1a4d91c965DDfB8c";
 
 
   useEffect(()=>{
@@ -39,15 +51,16 @@ function App() {
       })
 
       // Instantiate the contract with the ABI and address
-      let newContract= new web3Instance.eth.Contract(cryptoLotteryABI, contractAddress);
+      let newContract = new web3Instance.eth.Contract(cryptoLotteryABI, contractAddress);
       setContract(newContract);
+
     }
 
     instantiate()
   },[])
 
 
-// To get Initial Participants and min-value to participate in lottery
+// To get Initial Participants, subscribing to events and min-value to participate in lottery
   useEffect(()=>{
     if(!contract) return;
 
@@ -75,6 +88,25 @@ function App() {
     
   },[web3]);
 
+
+  // Subscribing to events
+  useEffect(()=>{
+    if(!contract) return;
+
+    contract.events.DeclareWinner()
+    .on("connected", (id)=>{
+      console.log("connected");
+    })
+    .on("data", (data)=>{
+      let winner = data.returnValues;
+      setWinner({address: winner.winnerAddress, participantNumber: winner.winnerIndex, winningAmount: web3.utils.fromWei(winner.winningAmount, "ether")})
+    })
+    .on("error", (error)=>{
+      console.log(error);
+    })
+  }, [web3, participants, minValue, winner])
+
+
   // Monitoring changes with web3
   useEffect(()=>{
     if(!web3) return;
@@ -82,7 +114,6 @@ function App() {
     // To moniter users account switch
     window.ethereum.on("accountsChanged", (accounts)=>{
       setCurrentAccount(accounts[0])
-      console.log(accounts[0]) // Update
     })
 
     // To moniter network change
@@ -101,6 +132,7 @@ function App() {
   }
 
   const placeABet = async()=>{
+    setLoading(true);
     const value = web3.utils.toWei("0.1", "ether")
     try {
       const result = await web3.eth.sendTransaction({
@@ -108,25 +140,33 @@ function App() {
         to: contractAddress,
         value
       })
-
-      if(participants.length < 2){
-        setParticpants([...participants, currentAccount]);
-      }
-      else setParticpants([]);
-
+      setParticpants([...participants, currentAccount]);
     } catch (error) {
-      
+      console.log(error)
     }
-    
+
+    setLoading(false);
   }
 
   return (
     <main className='app'>
-      <img className='headline-image' src="/images/Try-your-Luck-3-17-2023.png"/>
-      <Participants participants={participants} />
-      <div>
-        <button className='btn btn--bet' onClick={placeABet}>Place a Bet of {minValue} Ether</button>
-      </div>
+      <img className='headline-image' src="/images/headline.png"/>
+      <section className='app__body'>
+      <Participants participants={participants} loading={loading} color="#36d7b7" />
+        <p style={{"color": "black"}}>*The Lottery will start as soon as 3rd player place's the bet</p>
+          <button disabled={loading ? "true" : ""} className='btn btn--bet' onClick={placeABet}>
+            <span style={{"marginRight":"21px"}}>Place a Bet of {minValue} Ether</span> 
+          </button>
+      </section>
+      {winner ? 
+          <section className={`app__winner app__overlay`}>
+            <p className='app__winner-participant'>{`Participant ${parseInt(winner.participantNumber)+1} wins the Lottery`}</p>
+            <p>{`${winner.winningAmount} ether has been transferred to his address - ${winner.address}`}</p>
+            <button onClick={()=>window.location.reload()} className='btn'>ENTER IN A NEW ROUND</button>
+          </section>
+          :
+          null
+      }
     </main>
   )
 

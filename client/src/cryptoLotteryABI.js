@@ -5,6 +5,31 @@ export const cryptoLotteryABI = [
 		"type": "constructor"
 	},
 	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "winnerAddress",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "winnerIndex",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "winningAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "DeclareWinner",
+		"type": "event"
+	},
+	{
 		"inputs": [],
 		"name": "getBalance",
 		"outputs": [
